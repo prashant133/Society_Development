@@ -2,9 +2,10 @@ const User = require("../models/userModels");
 const {
   hashPassword,
   validatePassword,
+  comparePassword,
 } = require("../services/passwordValidation");
 
-const registerUser = async (req, res) => {
+const registerUserController = async (req, res) => {
   try {
     // destructuring the data from the body
     const { username, email, password, phone } = req.body;
@@ -55,4 +56,74 @@ const registerUser = async (req, res) => {
   }
 };
 
-module.exports = registerUser;
+const loginUserController = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // validation
+    if (!email || !password) {
+      return res.status(400).send({
+        success: false,
+        message: "Provide credentials",
+      });
+    }
+
+    // check if the user exist
+    const user = await User.findOne({ email });
+
+    // if user is not found on the database
+    if (!user) {
+      return res.status(400).send({
+        success: false,
+        message: "User does not exist",
+      });
+    }
+
+    // if the user exist then compare the password
+    const isValidPassword = await comparePassword(password, user.password);
+
+    // if the password doesnot match
+    if (!isValidPassword) {
+      return res.status(400).send({
+        success: false,
+        message: "Wrong Credentials",
+      });
+    }
+
+    
+
+    // Depending on the user's role, you can set up different responses
+    let roleMessage = "";
+    if (user.roles === 1) {
+      req.session.isAdmin = true; // set isAdmin flag for admin
+      req.session.isAuth = true;
+
+      roleMessage = "Admin login successful";
+    } else {
+      
+      req.session.isAuth = true;
+      roleMessage = "User login successful";
+    }
+    return res.status(200).send({
+      success: true,
+      message: roleMessage,
+      user,
+    });
+  } catch (error) {
+    return res.status(500).send({
+      success: false,
+      message: "Logged In failed",
+      error: error.message,
+    });
+  }
+};
+
+const dashboardController = (req, res) => {
+  return res.send("inside");
+};
+
+module.exports = {
+  registerUserController,
+  loginUserController,
+  dashboardController,
+};
