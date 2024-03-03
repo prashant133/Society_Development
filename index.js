@@ -6,6 +6,7 @@ const session = require("express-session");
 const MongoDBSession = require("connect-mongodb-session")(session);
 
 const userRoutes = require("./routes/userRoutes");
+const adminRoutes = require('./routes/adminRoutes')
 
 const app = express();
 app.use(express.json());
@@ -29,7 +30,7 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      maxAge: 60000, // Set maxAge to 1 minute (60000 milliseconds) for non-admin users
+      maxAge: 900000, // Set maxAge to 1 minute (60000 milliseconds) for non-admin users
     },
     store: store,
   })
@@ -37,6 +38,7 @@ app.use(
 
 // rotues middleware
 app.use("/api/user/", userRoutes);
+app.use('/api/admin/', adminRoutes)
 
 // connecting to the mongodb
 mongoose

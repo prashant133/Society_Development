@@ -14,7 +14,7 @@ const hashPassword= async (password)=>{
 }
 
 // comparing the hashed password 
-const comparePassword = (password,hashedPassword)=> {
+const comparePassword =  (password,hashedPassword)=> {
     try {
         return bcrypt.compare(password , hashedPassword)
         

@@ -75,7 +75,7 @@ const loginUserController = async (req, res) => {
     if (!user) {
       return res.status(400).send({
         success: false,
-        message: "User does not exist",
+        message: "Wrong Credentials",
       });
     }
 
@@ -90,7 +90,13 @@ const loginUserController = async (req, res) => {
       });
     }
 
-    
+    // checking if the user is approved or not
+    if (!user.approved) {
+      return res.status(400).send({
+        success: false,
+        message: "User is not yet approved",
+      });
+    }
 
     // Depending on the user's role, you can set up different responses
     let roleMessage = "";
@@ -100,7 +106,6 @@ const loginUserController = async (req, res) => {
 
       roleMessage = "Admin login successful";
     } else {
-      
       req.session.isAuth = true;
       roleMessage = "User login successful";
     }
