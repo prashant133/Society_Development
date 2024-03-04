@@ -123,12 +123,66 @@ const loginUserController = async (req, res) => {
   }
 };
 
-const dashboardController = (req, res) => {
-  return res.send("inside");
+const userUpdateController = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // find the user by user id
+    const user = await User.findById(id);
+
+    // check if user is present in the database
+    if (!user) {
+      return res.status(404).send({
+        success: false,
+        message: "user not found",
+      });
+    } else {
+      const { username, email, password, roles, phone, approved } = user;
+
+      // check if the user is approved or not
+      if (!user.approved) {
+        return res.status(400).send({
+          success: false,
+          message: "user not approved yet",
+        });
+      }
+      // check if the user is adim or simple user.....admin cannot change other credentials
+      if (!user.roles) {
+        // hash the updated password
+        let hashedPassword = await hashPassword(req.body.password);
+
+        // user can change the details but cannot approve id
+        user.username = req.body.username || username;
+        user.email = req.body.email || email;
+        user.password = hashedPassword || password;
+        user.roles = req.body.roles || roles;
+        user.phone = req.body.phone || phone;
+        user.approved = approved;
+      } else {
+        return res.status(400).send({
+          success: false,
+          message: "Admin cannot change other credentials",
+        });
+      }
+      const updatedUser = await user.save();
+
+      res.status(200).send({
+        success: true,
+        message: "User updated Successfully",
+        updatedUser,
+      });
+    }
+  } catch (error) {
+    return res.status(400).send({
+      success: false,
+      message: "Error in updating",
+      error,
+    });
+  }
 };
 
 module.exports = {
   registerUserController,
   loginUserController,
-  dashboardController,
+  userUpdateController,
 };
