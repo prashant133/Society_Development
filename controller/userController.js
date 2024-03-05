@@ -1,9 +1,15 @@
+const Poll = require("../models/pollModel");
 const User = require("../models/userModels");
+const Vote = require("../models/voteModels");
 const {
   hashPassword,
   validatePassword,
   comparePassword,
 } = require("../services/passwordValidation");
+
+const mongoose = require("mongoose");
+
+const { ObjectId } = require("mongoose").Types;
 
 const registerUserController = async (req, res) => {
   try {
@@ -181,8 +187,81 @@ const userUpdateController = async (req, res) => {
   }
 };
 
+const voteController = async (req, res) => {
+  try {
+    const { pollId, userId } = req.params;
+    const { option } = req.body;
+
+    // Check if userId is a valid ObjectId
+    if (!mongoose.isValidObjectId(userId)) {
+      return res.status(400).send({
+        success: false,
+        message: "Invalid userId",
+      });
+    }
+
+    // Check if pollId is a valid ObjectId
+    if (!mongoose.isValidObjectId(pollId)) {
+      return res.status(400).send({
+        success: false,
+        message: "Invalid pollId",
+      });
+    }
+
+    // check for the poll in the database
+    const poll = await Poll.findById(pollId);
+
+    // check for the option of the poll in database
+    if (!poll.option.includes(option)) {
+      return res.status(404).send({
+        success: false,
+        message: "Invalid option",
+      });
+    }
+
+    // convert pollId to ObjectId
+    const objectIdPollId = new ObjectId(pollId);
+    
+
+    // check if the user has already voted
+    const existingVote = await Vote.findOne({
+      "userId.userId": userId,
+      pollId: objectIdPollId,
+    });
+
+    if (existingVote) {
+      return res.status(400).send({
+        success: false,
+        message: "User has already voted for this poll",
+      });
+    }
+
+    //  save it to database
+    const vote = await new Vote({
+      pollId: objectIdPollId,
+
+      userId: [{ userId, option }],
+    }).save();
+
+    return res.status(200).send({
+      success: true,
+      message: "Voted successfully",
+      vote,
+    });
+
+    // Add your voting logic here
+  } catch (error) {
+    console.error(error);
+    return res.status(400).send({
+      success: false,
+      message: "Error while voting",
+    });
+  }
+};
+
 module.exports = {
   registerUserController,
   loginUserController,
   userUpdateController,
+  voteController,
 };

@@ -1,5 +1,7 @@
+const Poll = require("../models/pollModel");
 const User = require("../models/userModels");
 
+// to approve the user by the admin
 const userApprovalController = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -7,7 +9,6 @@ const userApprovalController = async (req, res, next) => {
     // find user by id to approved
 
     const user = await User.findById(id);
-    
 
     // check if the user is present
     if (!user) {
@@ -17,7 +18,7 @@ const userApprovalController = async (req, res, next) => {
       });
     } else {
       const { username, email, password, roles, phone, approved } = user;
-    //   admin can only change the the approval part of the user
+      //   admin can only change the the approval part of the user
       (user.username = username),
         (user.email = email), // we cannot chage
         (user.password = password), // we cannot chage
@@ -41,6 +42,37 @@ const userApprovalController = async (req, res, next) => {
   }
 };
 
-// check if the user if user is presnet in database
+// create a poll by the admin
 
-module.exports = userApprovalController;
+const createPollController = async (req, res, next) => {
+  try {
+    // destructure the data from th body
+    const { question, option } = req.body;
+
+    // validate the data from the form
+
+    if (!question || !option) {
+      return res.status(400).send({
+        success: false,
+        message: "Fill out the form",
+      });
+    }
+    const newPoll = await Poll.create({
+      question : question,
+      option : option
+    });
+
+    return res.status(200).send({
+      success : true,
+      message : "Poll created successfully",
+      newPoll
+    })
+  } catch (error) {
+     return res.status(400).send({
+       success: false,
+       message: "Error in creating poll",
+     });
+  }
+};
+
+module.exports = { userApprovalController, createPollController };
