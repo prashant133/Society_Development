@@ -4,6 +4,7 @@ const {
   loginUserController,
   userUpdateController,
   voteController,
+  addSuggestionController,
 } = require("../controller/userController");
 const { isAuth, isAdmin } = require("../middleware/authmiddleware");
 
@@ -16,5 +17,8 @@ router.put("/update/:id", isAuth, userUpdateController);
 
 // to vote in the poll
 router.post("/polls/:pollId/:userId", isAuth, voteController);
+
+// route to add the suggestion 
+router.post("/add-suggestion/:userId",isAuth, addSuggestionController)
 
 module.exports = router;

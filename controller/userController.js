@@ -1,4 +1,5 @@
 const Poll = require("../models/pollModel");
+const Suggestion = require("../models/suggestionModel");
 const User = require("../models/userModels");
 const Vote = require("../models/voteModels");
 const {
@@ -221,7 +222,6 @@ const voteController = async (req, res) => {
 
     // convert pollId to ObjectId
     const objectIdPollId = new ObjectId(pollId);
-    
 
     // check if the user has already voted
     const existingVote = await Vote.findOne({
@@ -258,10 +258,60 @@ const voteController = async (req, res) => {
     });
   }
 };
+const addSuggestionController = async (req, res) => {
+  try {
+    // destructure the data from the body
+    const { suggestionText } = req.body;
+    const userId = req.params.userId; // Assuming user ID is available in the request params
+
+    // validate the suggestion
+    if (!suggestionText) {
+      return res.status(400).send({
+        success: false,
+        message: "Suggestion is required",
+      });
+    }
+
+    // Check if userId is a valid ObjectId
+    if (!mongoose.isValidObjectId(userId)) {
+      return res.status(400).send({
+        success: false,
+        message: "Invalid user ID",
+      });
+    }
+
+    // Check if user exists
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(400).send({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const suggestion = new Suggestion({
+      user: { userId: userId, suggestion: suggestionText },
+    });
+    await suggestion.save();
+
+    return res.status(200).send({
+      success: true,
+      message: "Suggestion added successfully",
+      suggestion,
+    });
+  } catch (error) {
+    return res.status(400).send({
+      success: false,
+      message: "Error in adding suggestion",
+      error: error.message,
+    });
+  }
+};
 
 module.exports = {
   registerUserController,
   loginUserController,
   userUpdateController,
   voteController,
+  addSuggestionController,
 };

@@ -1,22 +1,19 @@
 const mongoose = require("mongoose");
 
-const voteSchema = mongoose.Schema(
+const suggestionSchema = mongoose.Schema(
   {
-    pollId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "poll",
-      required: true,
-    },
-    userId: [
+    user: [
       {
         userId: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "users",
           required: true,
         },
-        option: {
+        suggestion: {
           type: String,
           required: true,
+          trim: false,
+          unique: false,
         },
       },
     ],
@@ -24,6 +21,6 @@ const voteSchema = mongoose.Schema(
   { timestamps: true }
 );
 
-const Vote = mongoose.model("vote", voteSchema);
+const Suggestion = mongoose.model("suggestion", suggestionSchema);
 
-module.exports = Vote;
+module.exports = Suggestion;
